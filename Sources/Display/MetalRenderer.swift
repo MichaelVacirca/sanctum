@@ -72,6 +72,22 @@ final class MetalRenderer: NSObject {
         commandBuffer.commit()
     }
 
+    func renderTextureToCanvas(_ texture: MTLTexture) {
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+        let passDescriptor = MTLRenderPassDescriptor()
+        passDescriptor.colorAttachments[0].texture = canvasTexture
+        passDescriptor.colorAttachments[0].loadAction = .clear
+        passDescriptor.colorAttachments[0].storeAction = .store
+        passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+        encoder.setRenderPipelineState(passthroughPipeline)
+        encoder.setFragmentTexture(texture, index: 0)
+        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        encoder.endEncoding()
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+    }
+
     func clearCanvas(color: MTLClearColor) {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         let passDescriptor = MTLRenderPassDescriptor()

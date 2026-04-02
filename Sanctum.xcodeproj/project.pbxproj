@@ -20,6 +20,7 @@
 		68628E4359101187D0C89F09 /* CorruptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3CAE48EEFC42940037517CC /* CorruptionEngine.swift */; };
 		98DF21366EC6F620B112D8E7 /* CorruptionPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AD5ABF8B31C2D45CC590BA /* CorruptionPhaseTests.swift */; };
 		A9F4F33CCCADBDB6FAC25124 /* CorruptionPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF59272CFA61C671204A376 /* CorruptionPhase.swift */; };
+		CC1DE7950C40369455457C68 /* AssetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */; };
 		F164FDD4CE42CF828BB562E4 /* AudioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68D6BCAECD504925F6AEC7 /* AudioTests.swift */; };
 		F36173191470CED80EF08E83 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34680597FD9BA782A2AAC581 /* AudioCapture.swift */; };
 		F3E12E56EF200AD7916C5442 /* AudioCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */; };
@@ -39,6 +40,7 @@
 		028F40D63CC9FFAD89BB194F /* AnalysisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisEngine.swift; sourceTree = "<group>"; };
 		11572BD8443C0E8DB27DDDD8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		19F0A6236FF3B0D473DBD094 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetLibrary.swift; sourceTree = "<group>"; };
 		2A3C8F60BAB273C6857AB532 /* CorruptionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorruptionEngineTests.swift; sourceTree = "<group>"; };
 		32CA56877D350AA297F1CF43 /* Common.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Common.metal; sourceTree = "<group>"; };
 		34680597FD9BA782A2AAC581 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
@@ -108,6 +110,14 @@
 			path = Audio;
 			sourceTree = "<group>";
 		};
+		4DBB0CA38E1EEAA64B33B0B1 /* Composition */ = {
+			isa = PBXGroup;
+			children = (
+				1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */,
+			);
+			path = Composition;
+			sourceTree = "<group>";
+		};
 		59C0829537C4AFA041E383F5 /* Corruption */ = {
 			isa = PBXGroup;
 			children = (
@@ -140,6 +150,7 @@
 			children = (
 				E5BC6126A0A06933A8FF41F3 /* App */,
 				4641A0A4F092EB8BE508E964 /* Audio */,
+				4DBB0CA38E1EEAA64B33B0B1 /* Composition */,
 				59C0829537C4AFA041E383F5 /* Corruption */,
 				32A2FC36AA50A1263F42EE97 /* Display */,
 				5D0C7AAB6666C530432640CA /* Shaders */,
@@ -249,6 +260,7 @@
 			files = (
 				0B81501FD31B7F7CA03F8892 /* AnalysisEngine.swift in Sources */,
 				3744A745D48143EEC7D95275 /* AppDelegate.swift in Sources */,
+				CC1DE7950C40369455457C68 /* AssetLibrary.swift in Sources */,
 				F36173191470CED80EF08E83 /* AudioCapture.swift in Sources */,
 				00E4BD3CFAF83E32A2B2D951 /* AudioState.swift in Sources */,
 				1803F32234EC6FE680BA232F /* BeatDetector.swift in Sources */,
