@@ -15,6 +15,7 @@ final class AnalysisEngine: @unchecked Sendable {
 
     private var smoothedBands: (Float, Float, Float, Float) = (0, 0, 0, 0)
     private let smoothingFactor: Float = 0.3
+    private let beatDetector: BeatDetector
 
     init(sampleRate: Float = 48000, fftSize: Int = 4096) {
         self.sampleRate = sampleRate
@@ -30,6 +31,7 @@ final class AnalysisEngine: @unchecked Sendable {
         var window = [Float](repeating: 0, count: fftSize)
         vDSP_hann_window(&window, vDSP_Length(fftSize), Int32(vDSP_HANN_DENORM))
         self.windowBuffer = window
+        self.beatDetector = BeatDetector(sampleRate: sampleRate)
     }
 
     deinit {
@@ -52,6 +54,12 @@ final class AnalysisEngine: @unchecked Sendable {
         let mids = bandEnergy(magnitudes: magnitudes, range: midsRange)
         let highs = bandEnergy(magnitudes: magnitudes, range: highsRange)
 
+        let beatResult = beatDetector.process(
+            bassEnergy: subBass,
+            overallEnergy: (subBass + bass + mids + highs) / 4.0,
+            deltaTime: Float(fftSize) / sampleRate
+        )
+
         smoothedBands.0 = lerp(smoothedBands.0, subBass, t: smoothingFactor)
         smoothedBands.1 = lerp(smoothedBands.1, bass, t: smoothingFactor)
         smoothedBands.2 = lerp(smoothedBands.2, mids, t: smoothingFactor)
@@ -60,6 +68,10 @@ final class AnalysisEngine: @unchecked Sendable {
         var state = AudioState()
         state.bands = smoothedBands
         state.rawSpectrum = magnitudes
+        state.isBeat = beatResult.isBeat
+        state.isTransient = beatResult.isTransient
+        state.beatPhase = beatResult.beatPhase
+        state.bpm = beatResult.bpm
         return state
     }
 
