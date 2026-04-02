@@ -7,11 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		00E4BD3CFAF83E32A2B2D951 /* AudioState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799AAA1A07398236EA60103E /* AudioState.swift */; };
 		0B658A8181BC6CFC2A70FC82 /* SanctumApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6401F54713F43959920663F3 /* SanctumApp.swift */; };
 		227020A399A519B4E8CBC93E /* Common.metal in Sources */ = {isa = PBXBuildFile; fileRef = 32CA56877D350AA297F1CF43 /* Common.metal */; };
 		3744A745D48143EEC7D95275 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11572BD8443C0E8DB27DDDD8 /* AppDelegate.swift */; };
 		3D6968B1768E40E18F98EA5B /* MetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E644976B655A462BC7F47F4 /* MetalRenderer.swift */; };
 		F164FDD4CE42CF828BB562E4 /* AudioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68D6BCAECD504925F6AEC7 /* AudioTests.swift */; };
+		F36173191470CED80EF08E83 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34680597FD9BA782A2AAC581 /* AudioCapture.swift */; };
+		F3E12E56EF200AD7916C5442 /* AudioCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,11 +29,16 @@
 
 /* Begin PBXFileReference section */
 		11572BD8443C0E8DB27DDDD8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		19F0A6236FF3B0D473DBD094 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		2CCFA0AECD50ED5B3B32DD63 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		32CA56877D350AA297F1CF43 /* Common.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Common.metal; sourceTree = "<group>"; };
+		34680597FD9BA782A2AAC581 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
 		47862650897E7FD1ECEBBAF7 /* SanctumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SanctumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6401F54713F43959920663F3 /* SanctumApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanctumApp.swift; sourceTree = "<group>"; };
+		799AAA1A07398236EA60103E /* AudioState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioState.swift; sourceTree = "<group>"; };
 		7E644976B655A462BC7F47F4 /* MetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRenderer.swift; sourceTree = "<group>"; };
 		A88DB26C0DF6B29608EFBC0C /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureTests.swift; sourceTree = "<group>"; };
 		AA68D6BCAECD504925F6AEC7 /* AudioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioTests.swift; sourceTree = "<group>"; };
 		CD05641E48D8E5E6F7FEDEF4 /* Sanctum.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sanctum.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -39,6 +47,7 @@
 		141AEE2F4683C89F82AA678F /* AudioTests */ = {
 			isa = PBXGroup;
 			children = (
+				A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */,
 				AA68D6BCAECD504925F6AEC7 /* AudioTests.swift */,
 			);
 			path = AudioTests;
@@ -48,8 +57,18 @@
 			isa = PBXGroup;
 			children = (
 				141AEE2F4683C89F82AA678F /* AudioTests */,
+				E179DA5BAAAFA3B04A07F5FE /* CompositionTests */,
+				2A700C91E17BBD09152103A5 /* CorruptionTests */,
 			);
 			path = Tests;
+			sourceTree = "<group>";
+		};
+		2A700C91E17BBD09152103A5 /* CorruptionTests */ = {
+			isa = PBXGroup;
+			children = (
+				2CCFA0AECD50ED5B3B32DD63 /* .gitkeep */,
+			);
+			path = CorruptionTests;
 			sourceTree = "<group>";
 		};
 		32A2FC36AA50A1263F42EE97 /* Display */ = {
@@ -58,6 +77,15 @@
 				7E644976B655A462BC7F47F4 /* MetalRenderer.swift */,
 			);
 			path = Display;
+			sourceTree = "<group>";
+		};
+		4641A0A4F092EB8BE508E964 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				34680597FD9BA782A2AAC581 /* AudioCapture.swift */,
+				799AAA1A07398236EA60103E /* AudioState.swift */,
+			);
+			path = Audio;
 			sourceTree = "<group>";
 		};
 		5D0C7AAB6666C530432640CA /* Shaders */ = {
@@ -82,6 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				E5BC6126A0A06933A8FF41F3 /* App */,
+				4641A0A4F092EB8BE508E964 /* Audio */,
 				32A2FC36AA50A1263F42EE97 /* Display */,
 				5D0C7AAB6666C530432640CA /* Shaders */,
 			);
@@ -95,6 +124,14 @@
 				21084F0E8EA4668266A69D21 /* Tests */,
 				95550B3E2AF67FD8F35060B8 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		E179DA5BAAAFA3B04A07F5FE /* CompositionTests */ = {
+			isa = PBXGroup;
+			children = (
+				19F0A6236FF3B0D473DBD094 /* .gitkeep */,
+			);
+			path = CompositionTests;
 			sourceTree = "<group>";
 		};
 		E5BC6126A0A06933A8FF41F3 /* App */ = {
@@ -181,6 +218,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3744A745D48143EEC7D95275 /* AppDelegate.swift in Sources */,
+				F36173191470CED80EF08E83 /* AudioCapture.swift in Sources */,
+				00E4BD3CFAF83E32A2B2D951 /* AudioState.swift in Sources */,
 				227020A399A519B4E8CBC93E /* Common.metal in Sources */,
 				3D6968B1768E40E18F98EA5B /* MetalRenderer.swift in Sources */,
 				0B658A8181BC6CFC2A70FC82 /* SanctumApp.swift in Sources */,
@@ -191,6 +230,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3E12E56EF200AD7916C5442 /* AudioCaptureTests.swift in Sources */,
 				F164FDD4CE42CF828BB562E4 /* AudioTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
