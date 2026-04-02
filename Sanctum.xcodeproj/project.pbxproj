@@ -15,12 +15,17 @@
 		1803F32234EC6FE680BA232F /* BeatDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 724C83D6ABE2F3AB690A3755 /* BeatDetector.swift */; };
 		1A58E20AB4BCC9F7AB6A9156 /* BeatDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C046A41308FC92DD9494F60 /* BeatDetectorTests.swift */; };
 		227020A399A519B4E8CBC93E /* Common.metal in Sources */ = {isa = PBXBuildFile; fileRef = 32CA56877D350AA297F1CF43 /* Common.metal */; };
+		270D07AA7AE6ACFEF46504AC /* CompositionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973025EF1FEF4464B35EFCCF /* CompositionEngine.swift */; };
 		3744A745D48143EEC7D95275 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11572BD8443C0E8DB27DDDD8 /* AppDelegate.swift */; };
 		3D6968B1768E40E18F98EA5B /* MetalRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E644976B655A462BC7F47F4 /* MetalRenderer.swift */; };
+		44159753194E4D56954DD315 /* SceneGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD63E12F9136DAC6262D74F /* SceneGraph.swift */; };
 		68628E4359101187D0C89F09 /* CorruptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3CAE48EEFC42940037517CC /* CorruptionEngine.swift */; };
+		92FFB97418C9727D9D2D2B10 /* Zone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F45BE6BDC4B68B5F5C4AEB1 /* Zone.swift */; };
 		98DF21366EC6F620B112D8E7 /* CorruptionPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8AD5ABF8B31C2D45CC590BA /* CorruptionPhaseTests.swift */; };
 		A9F4F33CCCADBDB6FAC25124 /* CorruptionPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF59272CFA61C671204A376 /* CorruptionPhase.swift */; };
+		BC769202FD74B44135B43376 /* ZoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BA0B14071CF4A3F9218F1AA /* ZoneTests.swift */; };
 		CC1DE7950C40369455457C68 /* AssetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */; };
+		D40D1D0012382E34AB318A33 /* SceneGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8A57A56E331A2514AC34F6 /* SceneGraphTests.swift */; };
 		F164FDD4CE42CF828BB562E4 /* AudioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68D6BCAECD504925F6AEC7 /* AudioTests.swift */; };
 		F36173191470CED80EF08E83 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34680597FD9BA782A2AAC581 /* AudioCapture.swift */; };
 		F3E12E56EF200AD7916C5442 /* AudioCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */; };
@@ -38,20 +43,24 @@
 
 /* Begin PBXFileReference section */
 		028F40D63CC9FFAD89BB194F /* AnalysisEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisEngine.swift; sourceTree = "<group>"; };
+		0BA0B14071CF4A3F9218F1AA /* ZoneTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoneTests.swift; sourceTree = "<group>"; };
 		11572BD8443C0E8DB27DDDD8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		19F0A6236FF3B0D473DBD094 /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetLibrary.swift; sourceTree = "<group>"; };
 		2A3C8F60BAB273C6857AB532 /* CorruptionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorruptionEngineTests.swift; sourceTree = "<group>"; };
 		32CA56877D350AA297F1CF43 /* Common.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Common.metal; sourceTree = "<group>"; };
 		34680597FD9BA782A2AAC581 /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
 		3C046A41308FC92DD9494F60 /* BeatDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatDetectorTests.swift; sourceTree = "<group>"; };
 		47862650897E7FD1ECEBBAF7 /* SanctumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SanctumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4A8A57A56E331A2514AC34F6 /* SceneGraphTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGraphTests.swift; sourceTree = "<group>"; };
 		556E934F85FB4EB6D83126E1 /* AnalysisEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisEngineTests.swift; sourceTree = "<group>"; };
+		5F45BE6BDC4B68B5F5C4AEB1 /* Zone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Zone.swift; sourceTree = "<group>"; };
+		5FD63E12F9136DAC6262D74F /* SceneGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneGraph.swift; sourceTree = "<group>"; };
 		6401F54713F43959920663F3 /* SanctumApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SanctumApp.swift; sourceTree = "<group>"; };
 		724C83D6ABE2F3AB690A3755 /* BeatDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatDetector.swift; sourceTree = "<group>"; };
 		799AAA1A07398236EA60103E /* AudioState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioState.swift; sourceTree = "<group>"; };
 		7E644976B655A462BC7F47F4 /* MetalRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalRenderer.swift; sourceTree = "<group>"; };
 		8BF59272CFA61C671204A376 /* CorruptionPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorruptionPhase.swift; sourceTree = "<group>"; };
+		973025EF1FEF4464B35EFCCF /* CompositionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompositionEngine.swift; sourceTree = "<group>"; };
 		A88DB26C0DF6B29608EFBC0C /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
 		A8AD5ABF8B31C2D45CC590BA /* CorruptionPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorruptionPhaseTests.swift; sourceTree = "<group>"; };
 		A9DA6296A0EF815A82F89728 /* AudioCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureTests.swift; sourceTree = "<group>"; };
@@ -114,6 +123,9 @@
 			isa = PBXGroup;
 			children = (
 				1A28E46A4D2808ACB5579F82 /* AssetLibrary.swift */,
+				973025EF1FEF4464B35EFCCF /* CompositionEngine.swift */,
+				5FD63E12F9136DAC6262D74F /* SceneGraph.swift */,
+				5F45BE6BDC4B68B5F5C4AEB1 /* Zone.swift */,
 			);
 			path = Composition;
 			sourceTree = "<group>";
@@ -170,7 +182,8 @@
 		E179DA5BAAAFA3B04A07F5FE /* CompositionTests */ = {
 			isa = PBXGroup;
 			children = (
-				19F0A6236FF3B0D473DBD094 /* .gitkeep */,
+				4A8A57A56E331A2514AC34F6 /* SceneGraphTests.swift */,
+				0BA0B14071CF4A3F9218F1AA /* ZoneTests.swift */,
 			);
 			path = CompositionTests;
 			sourceTree = "<group>";
@@ -265,10 +278,13 @@
 				00E4BD3CFAF83E32A2B2D951 /* AudioState.swift in Sources */,
 				1803F32234EC6FE680BA232F /* BeatDetector.swift in Sources */,
 				227020A399A519B4E8CBC93E /* Common.metal in Sources */,
+				270D07AA7AE6ACFEF46504AC /* CompositionEngine.swift in Sources */,
 				68628E4359101187D0C89F09 /* CorruptionEngine.swift in Sources */,
 				A9F4F33CCCADBDB6FAC25124 /* CorruptionPhase.swift in Sources */,
 				3D6968B1768E40E18F98EA5B /* MetalRenderer.swift in Sources */,
 				0B658A8181BC6CFC2A70FC82 /* SanctumApp.swift in Sources */,
+				44159753194E4D56954DD315 /* SceneGraph.swift in Sources */,
+				92FFB97418C9727D9D2D2B10 /* Zone.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +298,8 @@
 				1A58E20AB4BCC9F7AB6A9156 /* BeatDetectorTests.swift in Sources */,
 				0420234A64D804A6352DED42 /* CorruptionEngineTests.swift in Sources */,
 				98DF21366EC6F620B112D8E7 /* CorruptionPhaseTests.swift in Sources */,
+				D40D1D0012382E34AB318A33 /* SceneGraphTests.swift in Sources */,
+				BC769202FD74B44135B43376 /* ZoneTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
