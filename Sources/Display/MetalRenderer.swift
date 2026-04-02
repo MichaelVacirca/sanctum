@@ -7,6 +7,7 @@ final class MetalRenderer: NSObject {
     let device: MTLDevice
     let commandQueue: MTLCommandQueue
     private var passthroughPipeline: MTLRenderPipelineState!
+    private(set) var shaderPipeline: ShaderPipeline!
 
     private(set) var canvasTexture: MTLTexture!
     let canvasWidth: Int
@@ -26,6 +27,8 @@ final class MetalRenderer: NSObject {
         super.init()
         try setupPipelines()
         setupCanvasTexture()
+        shaderPipeline = try ShaderPipeline(device: device, commandQueue: commandQueue,
+                                            canvasWidth: canvasWidth, canvasHeight: canvasHeight)
     }
 
     private func setupPipelines() throws {
@@ -47,7 +50,7 @@ final class MetalRenderer: NSObject {
             height: canvasHeight,
             mipmapped: false
         )
-        descriptor.usage = [.renderTarget, .shaderRead]
+        descriptor.usage = [.renderTarget, .shaderRead, .shaderWrite]
         descriptor.storageMode = .private
         canvasTexture = device.makeTexture(descriptor: descriptor)
     }
@@ -84,6 +87,27 @@ final class MetalRenderer: NSObject {
         encoder.setFragmentTexture(texture, index: 0)
         encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         encoder.endEncoding()
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+    }
+
+    func renderFrame(panelTextures: [MTLTexture], tintColor: SIMD4<Float>) {
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+
+        shaderPipeline.compositePanels(panelTextures: panelTextures,
+                                        tintColor: tintColor,
+                                        commandBuffer: commandBuffer)
+
+        guard let blitEncoder = commandBuffer.makeBlitCommandEncoder() else { return }
+        blitEncoder.copy(from: shaderPipeline.compositionOutput,
+                         sourceSlice: 0, sourceLevel: 0,
+                         sourceOrigin: MTLOrigin(x: 0, y: 0, z: 0),
+                         sourceSize: MTLSize(width: canvasWidth, height: canvasHeight, depth: 1),
+                         to: canvasTexture,
+                         destinationSlice: 0, destinationLevel: 0,
+                         destinationOrigin: MTLOrigin(x: 0, y: 0, z: 0))
+        blitEncoder.endEncoding()
+
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
     }
