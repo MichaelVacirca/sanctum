@@ -7,6 +7,7 @@ struct SanctumConfig: Codable {
     var corruptionWindowHours: Double = 5.0
     var audioBufferSize: Int = 4096
     var debugOverlay: Bool = true
+    var audioSource: String = "line-in" // "line-in" or path to WAV/AIFF file
 
     static func load() -> SanctumConfig {
         let configURL = Bundle.main.url(forResource: "sanctum-config", withExtension: "json")

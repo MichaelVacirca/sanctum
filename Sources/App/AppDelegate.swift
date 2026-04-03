@@ -36,7 +36,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Start audio capture
         do {
-            try audioCapture.start()
+            if config.audioSource == "line-in" {
+                try audioCapture.start()
+            } else {
+                let fileURL = URL(fileURLWithPath: config.audioSource)
+                try audioCapture.startFromFile(url: fileURL, loop: true)
+            }
         } catch {
             NSLog("Audio capture failed: \(error). Running in visual-only mode.")
         }

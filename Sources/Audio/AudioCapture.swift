@@ -1,6 +1,7 @@
 import Foundation
 import AudioToolbox
 import CoreAudio
+import AVFoundation
 
 final class AudioCapture: @unchecked Sendable {
     fileprivate var audioUnit: AudioComponentInstance?
@@ -77,6 +78,45 @@ final class AudioCapture: @unchecked Sendable {
 
         try checkOSStatus(AudioUnitInitialize(au))
         try checkOSStatus(AudioOutputUnitStart(au))
+    }
+
+    /// Load audio from a file and feed it into the ring buffer in real-time
+    func startFromFile(url: URL, loop: Bool = true) throws {
+        guard let audioFile = try? AVAudioFile(forReading: url) else {
+            throw SanctumError.assetLoadFailed(url.path)
+        }
+
+        let format = audioFile.processingFormat
+        let frameCount = AVAudioFrameCount(audioFile.length)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            throw SanctumError.assetLoadFailed("Could not create buffer")
+        }
+        try audioFile.read(into: buffer)
+
+        guard let floatData = buffer.floatChannelData else {
+            throw SanctumError.assetLoadFailed("Not float format")
+        }
+        let samples = Array(UnsafeBufferPointer(start: floatData[0], count: Int(buffer.frameLength)))
+
+        let samplesPerFrame = Int(format.sampleRate / 60.0)
+        var offset = 0
+
+        Timer.scheduledTimer(withTimeInterval: 1.0 / 60.0, repeats: true) { [weak self] timer in
+            guard let self else { timer.invalidate(); return }
+            let end = min(offset + samplesPerFrame, samples.count)
+            let chunk = Array(samples[offset..<end])
+            chunk.withUnsafeBufferPointer { ptr in
+                self.writeSamples(ptr)
+            }
+            offset = end
+            if offset >= samples.count {
+                if loop {
+                    offset = 0
+                } else {
+                    timer.invalidate()
+                }
+            }
+        }
     }
 
     func stop() {
