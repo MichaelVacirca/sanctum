@@ -8,9 +8,12 @@ final class ShaderPipeline {
     private var compositePanelsPipeline: MTLComputePipelineState!
     private var compositeIconsPipeline: MTLComputePipelineState!
     private var effectsRenderPipeline: MTLRenderPipelineState!
+    private var postProcessPipeline: MTLRenderPipelineState!
 
     private(set) var compositionOutput: MTLTexture!
     private(set) var effectsOutput: MTLTexture!
+    private(set) var postProcessOutput: MTLTexture!
+    private var previousFrameTexture: MTLTexture!
 
     let canvasWidth: Int
     let canvasHeight: Int
@@ -44,6 +47,12 @@ final class ShaderPipeline {
         effectsDesc.fragmentFunction = library.makeFunction(name: "effectsFragment")
         effectsDesc.colorAttachments[0].pixelFormat = .bgra8Unorm
         effectsRenderPipeline = try device.makeRenderPipelineState(descriptor: effectsDesc)
+
+        let postDesc = MTLRenderPipelineDescriptor()
+        postDesc.vertexFunction = library.makeFunction(name: "fullscreenQuadVertex")
+        postDesc.fragmentFunction = library.makeFunction(name: "postProcessFragment")
+        postDesc.colorAttachments[0].pixelFormat = .bgra8Unorm
+        postProcessPipeline = try device.makeRenderPipelineState(descriptor: postDesc)
     }
 
     private func setupTextures() {
@@ -58,6 +67,9 @@ final class ShaderPipeline {
 
         descriptor.usage = [.shaderRead, .shaderWrite, .renderTarget]
         effectsOutput = device.makeTexture(descriptor: descriptor)
+
+        postProcessOutput = device.makeTexture(descriptor: descriptor)
+        previousFrameTexture = device.makeTexture(descriptor: descriptor)
     }
 
     func applyEffects(audioUniforms: AudioUniforms, commandBuffer: MTLCommandBuffer) {
@@ -131,5 +143,30 @@ final class ShaderPipeline {
         let gridSize = MTLSize(width: canvasWidth, height: canvasHeight, depth: 1)
         encoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadgroupSize)
         encoder.endEncoding()
+    }
+
+    func applyPostProcessing(audioUniforms: AudioUniforms, commandBuffer: MTLCommandBuffer) {
+        let passDescriptor = MTLRenderPassDescriptor()
+        passDescriptor.colorAttachments[0].texture = postProcessOutput
+        passDescriptor.colorAttachments[0].loadAction = .dontCare
+        passDescriptor.colorAttachments[0].storeAction = .store
+
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+        encoder.setRenderPipelineState(postProcessPipeline)
+        encoder.setFragmentTexture(effectsOutput, index: 0)
+        encoder.setFragmentTexture(previousFrameTexture, index: 1)
+        var uniforms = audioUniforms
+        encoder.setFragmentBytes(&uniforms, length: MemoryLayout<AudioUniforms>.size, index: 0)
+        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        encoder.endEncoding()
+
+        // Copy current output to previous frame for next iteration
+        guard let blitEncoder = commandBuffer.makeBlitCommandEncoder() else { return }
+        blitEncoder.copy(from: postProcessOutput, to: previousFrameTexture)
+        blitEncoder.endEncoding()
+    }
+
+    var finalOutput: MTLTexture {
+        postProcessOutput
     }
 }
