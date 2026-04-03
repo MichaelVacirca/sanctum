@@ -27,6 +27,7 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: "YES"
         NSMicrophoneUsageDescription: "Sanctum needs audio input access to analyze music for visual generation"
+        SWIFT_OBJC_BRIDGING_HEADER: "Sources/Sanctum-Bridging-Header.h"
     dependencies: []
   SanctumTests:
     type: bundle.unit-test

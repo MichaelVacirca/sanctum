@@ -7,8 +7,10 @@ final class ShaderPipeline {
 
     private var compositePanelsPipeline: MTLComputePipelineState!
     private var compositeIconsPipeline: MTLComputePipelineState!
+    private var effectsRenderPipeline: MTLRenderPipelineState!
 
     private(set) var compositionOutput: MTLTexture!
+    private(set) var effectsOutput: MTLTexture!
 
     let canvasWidth: Int
     let canvasHeight: Int
@@ -36,6 +38,12 @@ final class ShaderPipeline {
         if let iconsFunc = library.makeFunction(name: "compositeIcons") {
             compositeIconsPipeline = try device.makeComputePipelineState(function: iconsFunc)
         }
+
+        let effectsDesc = MTLRenderPipelineDescriptor()
+        effectsDesc.vertexFunction = library.makeFunction(name: "fullscreenQuadVertex")
+        effectsDesc.fragmentFunction = library.makeFunction(name: "effectsFragment")
+        effectsDesc.colorAttachments[0].pixelFormat = .bgra8Unorm
+        effectsRenderPipeline = try device.makeRenderPipelineState(descriptor: effectsDesc)
     }
 
     private func setupTextures() {
@@ -47,6 +55,24 @@ final class ShaderPipeline {
         descriptor.usage = [.shaderRead, .shaderWrite]
         descriptor.storageMode = .private
         compositionOutput = device.makeTexture(descriptor: descriptor)
+
+        descriptor.usage = [.shaderRead, .shaderWrite, .renderTarget]
+        effectsOutput = device.makeTexture(descriptor: descriptor)
+    }
+
+    func applyEffects(audioUniforms: AudioUniforms, commandBuffer: MTLCommandBuffer) {
+        let passDescriptor = MTLRenderPassDescriptor()
+        passDescriptor.colorAttachments[0].texture = effectsOutput
+        passDescriptor.colorAttachments[0].loadAction = .dontCare
+        passDescriptor.colorAttachments[0].storeAction = .store
+
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+        encoder.setRenderPipelineState(effectsRenderPipeline)
+        encoder.setFragmentTexture(compositionOutput, index: 0)
+        var uniforms = audioUniforms
+        encoder.setFragmentBytes(&uniforms, length: MemoryLayout<AudioUniforms>.size, index: 0)
+        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        encoder.endEncoding()
     }
 
     func compositePanels(panelTextures: [MTLTexture],
