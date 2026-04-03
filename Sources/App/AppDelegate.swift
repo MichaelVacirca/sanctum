@@ -70,6 +70,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let assetsURL = Bundle.main.url(forResource: "Assets", withExtension: nil) {
             try? assetLibrary.loadAssets(from: assetsURL)
         }
+        // Development fallback: load from project Assets/ directory
+        if assetLibrary.count == 0 {
+            let devAssetsURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+                .appendingPathComponent("Assets")
+            if FileManager.default.fileExists(atPath: devAssetsURL.path) {
+                try? assetLibrary.loadAssets(from: devAssetsURL)
+            }
+        }
         // Create placeholder assets if none loaded
         if assetLibrary.count == 0 {
             let colors: [(UInt8, UInt8, UInt8, UInt8)] = [
@@ -84,6 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         compositionEngine.setPanels(assetLibrary.textureNames.filter { $0.contains("panel") })
+        compositionEngine.setIcons(assetLibrary.textureNames.filter { $0.contains("icon") })
 
         // Display
         displayManager = DisplayManager(renderer: renderer)

@@ -14,11 +14,17 @@ final class AssetLibrary {
 
     func loadAssets(from directory: URL) throws {
         let fileManager = FileManager.default
-        let files = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-        for file in files where file.pathExtension == "png" || file.pathExtension == "exr" {
-            let name = file.deletingPathExtension().lastPathComponent
-            let texture = try loadTexture(from: file)
-            textures[name] = texture
+        let contents = try fileManager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+        for item in contents {
+            var isDir: ObjCBool = false
+            fileManager.fileExists(atPath: item.path, isDirectory: &isDir)
+            if isDir.boolValue {
+                try loadAssets(from: item)
+            } else if item.pathExtension == "png" || item.pathExtension == "exr" {
+                let name = item.deletingPathExtension().lastPathComponent
+                let texture = try loadTexture(from: item)
+                textures[name] = texture
+            }
         }
     }
 
