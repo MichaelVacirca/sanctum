@@ -112,6 +112,47 @@ final class MetalRenderer: NSObject {
         commandBuffer.waitUntilCompleted()
     }
 
+    /// Present a sub-region of the canvas to a metal layer (for multi-display)
+    func presentCanvasRegion(to layer: CAMetalLayer, region: MTLRegion) {
+        guard let drawable = layer.nextDrawable() else { return }
+        guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
+
+        let quadDesc = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm,
+            width: region.size.width, height: region.size.height,
+            mipmapped: false
+        )
+        quadDesc.usage = [.shaderRead, .renderTarget]
+        quadDesc.storageMode = .private
+        guard let quadTexture = device.makeTexture(descriptor: quadDesc) else { return }
+
+        guard let blitEncoder = commandBuffer.makeBlitCommandEncoder() else { return }
+        blitEncoder.copy(
+            from: canvasTexture,
+            sourceSlice: 0, sourceLevel: 0,
+            sourceOrigin: region.origin,
+            sourceSize: region.size,
+            to: quadTexture,
+            destinationSlice: 0, destinationLevel: 0,
+            destinationOrigin: MTLOrigin(x: 0, y: 0, z: 0)
+        )
+        blitEncoder.endEncoding()
+
+        let passDescriptor = MTLRenderPassDescriptor()
+        passDescriptor.colorAttachments[0].texture = drawable.texture
+        passDescriptor.colorAttachments[0].loadAction = .dontCare
+        passDescriptor.colorAttachments[0].storeAction = .store
+
+        guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: passDescriptor) else { return }
+        encoder.setRenderPipelineState(passthroughPipeline)
+        encoder.setFragmentTexture(quadTexture, index: 0)
+        encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+        encoder.endEncoding()
+
+        commandBuffer.present(drawable)
+        commandBuffer.commit()
+    }
+
     func clearCanvas(color: MTLClearColor) {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
         let passDescriptor = MTLRenderPassDescriptor()
