@@ -29,6 +29,8 @@ final class DisplayManager {
 
     private func setupSingleDisplay(screen: NSScreen) {
         let window = createFullscreenWindow(on: screen)
+        window.level = .floating // Not .screenSaver — allows Cmd+Tab and escape
+        window.isMovableByWindowBackground = true
         let layer = createMetalLayer(size: screen.frame.size, scale: screen.backingScaleFactor)
         window.contentView!.layer = layer
         window.contentView!.wantsLayer = true

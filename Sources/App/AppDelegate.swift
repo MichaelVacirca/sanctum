@@ -30,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
+        setupKeyboardHandling()
+
         startTime = CACurrentMediaTime()
         lastFrameTime = startTime
         startDisplayLink()
@@ -101,6 +103,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Debug overlay
         if config.debugOverlay, let window = NSApp.windows.first {
             debugOverlay = DebugOverlay(parentView: window.contentView!)
+        }
+    }
+
+    private func setupKeyboardHandling() {
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            switch event.keyCode {
+            case 53: // Escape
+                NSApp.terminate(nil)
+                return nil
+            case 2: // 'D' key — toggle debug overlay
+                self?.debugOverlay?.toggle()
+                return nil
+            case 15: // 'R' key — reset corruption
+                self?.corruptionEngine.reset()
+                return nil
+            default:
+                return event
+            }
         }
     }
 
