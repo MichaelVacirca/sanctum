@@ -173,21 +173,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // 5. Render pipeline
         guard let commandBuffer = renderer.commandQueue.makeCommandBuffer() else { return }
 
-        // Pass 1: Composition
+        // Pass 1: Full-screen panel composition with crossfade
         let corruption = audioState.corruptionIndex
         let tint = SIMD4<Float>(
+            1.0 - corruption * 0.2,
             1.0 - corruption * 0.3,
-            1.0 - corruption * 0.5,
-            1.0 - corruption * 0.1,
+            1.0 - corruption * 0.05,
             1.0
         )
-        let panelNodes = compositionEngine.sceneGraph.allNodes(ofType: .panel)
-        let panelTextures = panelNodes.prefix(4).compactMap { assetLibrary.texture(named: $0.textureName) }
-        renderer.shaderPipeline.compositePanels(
-            panelTextures: panelTextures,
-            tintColor: tint,
-            commandBuffer: commandBuffer
-        )
+        let currentPanelName = compositionEngine.currentPanelName
+        let nextPanelName = compositionEngine.nextPanelName
+        if let currentTex = assetLibrary.texture(named: currentPanelName),
+           let nextTex = assetLibrary.texture(named: nextPanelName) {
+            renderer.shaderPipeline.compositePanels(
+                currentPanel: currentTex,
+                nextPanel: nextTex,
+                crossfade: compositionEngine.crossfade,
+                tintColor: tint,
+                commandBuffer: commandBuffer
+            )
+        }
 
         // Pass 1b: Overlay icons
         let iconNodes = compositionEngine.sceneGraph.allNodes(ofType: .icon)

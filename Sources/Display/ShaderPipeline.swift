@@ -87,20 +87,21 @@ final class ShaderPipeline {
         encoder.endEncoding()
     }
 
-    func compositePanels(panelTextures: [MTLTexture],
+    func compositePanels(currentPanel: MTLTexture,
+                         nextPanel: MTLTexture,
+                         crossfade: Float,
                          tintColor: SIMD4<Float>,
                          commandBuffer: MTLCommandBuffer) {
-        guard panelTextures.count >= 4 else { return }
         guard let encoder = commandBuffer.makeComputeCommandEncoder() else { return }
         encoder.setComputePipelineState(compositePanelsPipeline)
         encoder.setTexture(compositionOutput, index: 0)
-        encoder.setTexture(panelTextures[0], index: 1)
-        encoder.setTexture(panelTextures[1], index: 2)
-        encoder.setTexture(panelTextures[2], index: 3)
-        encoder.setTexture(panelTextures[3], index: 4)
+        encoder.setTexture(currentPanel, index: 1)
+        encoder.setTexture(nextPanel, index: 2)
 
         var tint = tintColor
         encoder.setBytes(&tint, length: MemoryLayout<SIMD4<Float>>.size, index: 0)
+        var fade = crossfade
+        encoder.setBytes(&fade, length: MemoryLayout<Float>.size, index: 1)
 
         let threadgroupSize = MTLSize(width: 16, height: 16, depth: 1)
         let gridSize = MTLSize(width: canvasWidth, height: canvasHeight, depth: 1)

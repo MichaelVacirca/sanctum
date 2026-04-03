@@ -2,36 +2,25 @@
 #include "ShaderTypes.h"
 using namespace metal;
 
-// Composite 4 panel textures into a 2x2 grid on the canvas
+// Composite a single full-screen panel with crossfade to next panel
 kernel void compositePanels(
     texture2d<float, access::write> canvas [[texture(0)]],
-    texture2d<float> panel0 [[texture(1)]],
-    texture2d<float> panel1 [[texture(2)]],
-    texture2d<float> panel2 [[texture(3)]],
-    texture2d<float> panel3 [[texture(4)]],
+    texture2d<float> currentPanel [[texture(1)]],
+    texture2d<float> nextPanel [[texture(2)]],
     constant float4 &tintColor [[buffer(0)]],
+    constant float &crossfade [[buffer(1)]],
     uint2 gid [[thread_position_in_grid]]
 ) {
     uint canvasW = canvas.get_width();
     uint canvasH = canvas.get_height();
     constexpr sampler s(filter::linear);
 
-    uint quadX = gid.x < canvasW / 2 ? 0 : 1;
-    uint quadY = gid.y < canvasH / 2 ? 0 : 1;
-    uint quadrant = quadY * 2 + quadX;
+    float2 uv = float2(float(gid.x) / float(canvasW),
+                        float(gid.y) / float(canvasH));
 
-    float2 localUV = float2(
-        float(gid.x % (canvasW / 2)) / float(canvasW / 2),
-        float(gid.y % (canvasH / 2)) / float(canvasH / 2)
-    );
-
-    float4 color;
-    switch (quadrant) {
-        case 0: color = panel0.sample(s, localUV); break;
-        case 1: color = panel1.sample(s, localUV); break;
-        case 2: color = panel2.sample(s, localUV); break;
-        default: color = panel3.sample(s, localUV); break;
-    }
+    float4 colorA = currentPanel.sample(s, uv);
+    float4 colorB = nextPanel.sample(s, uv);
+    float4 color = mix(colorA, colorB, crossfade);
     color.rgb *= tintColor.rgb;
     canvas.write(color, gid);
 }

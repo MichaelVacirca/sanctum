@@ -91,10 +91,12 @@ final class MetalRenderer: NSObject {
         commandBuffer.waitUntilCompleted()
     }
 
-    func renderFrame(panelTextures: [MTLTexture], tintColor: SIMD4<Float>) {
+    func renderFrame(currentPanel: MTLTexture, nextPanel: MTLTexture, crossfade: Float, tintColor: SIMD4<Float>) {
         guard let commandBuffer = commandQueue.makeCommandBuffer() else { return }
 
-        shaderPipeline.compositePanels(panelTextures: panelTextures,
+        shaderPipeline.compositePanels(currentPanel: currentPanel,
+                                        nextPanel: nextPanel,
+                                        crossfade: crossfade,
                                         tintColor: tintColor,
                                         commandBuffer: commandBuffer)
 
