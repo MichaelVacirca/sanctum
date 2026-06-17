@@ -20,6 +20,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastFrameTime: Double = 0
     private var config = SanctumConfig.load()
     private var currentAudioState = AudioState.silent
+    private var theme: Theme = .cathedral
+    private var themeIndex: Int = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
@@ -80,21 +82,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 try? assetLibrary.loadAssets(from: devAssetsURL)
             }
         }
-        // Create placeholder assets if none loaded
-        if assetLibrary.count == 0 {
-            let colors: [(UInt8, UInt8, UInt8, UInt8)] = [
-                (15, 10, 60, 255),   // deep blue
-                (140, 20, 30, 255),  // ruby red
-                (80, 10, 80, 255),   // deep purple
-                (20, 60, 30, 255),   // forest green
-            ]
-            for i in 0..<4 {
-                assetLibrary.createSolidTexture(width: 512, height: 512,
-                    color: colors[i], name: "panel-\(i)")
-            }
-        }
-        compositionEngine.setPanels(assetLibrary.textureNames.filter { $0.contains("panel") })
-        compositionEngine.setIcons(assetLibrary.textureNames.filter { $0.contains("icon") })
+        // Select and apply the configured theme (creates color placeholders
+        // for any panels whose art isn't present, so the arc is visible even
+        // before real assets are generated).
+        let configured = Theme.named(config.theme)
+        themeIndex = Theme.all.firstIndex { $0.id == configured.id } ?? 0
+        applyTheme(configured)
 
         // Display
         displayManager = DisplayManager(renderer: renderer)
@@ -106,6 +99,43 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Switch the active visual theme: point the composition engine at the
+    /// theme's panel order, ensure panels exist (placeholders if no art is
+    /// loaded), and swap in the theme's drifting icons.
+    private func applyTheme(_ newTheme: Theme) {
+        theme = newTheme
+        compositionEngine.panelOrder = newTheme.panelOrder
+
+        let loaded = Set(assetLibrary.textureNames)
+        if !newTheme.panelOrder.contains(where: loaded.contains) {
+            for (i, name) in newTheme.panelOrder.enumerated() {
+                let tint = newTheme.phases[min(i, newTheme.phases.count - 1)].tint
+                assetLibrary.createSolidTexture(
+                    width: 512, height: 512,
+                    color: placeholderColor(from: tint), name: name
+                )
+            }
+        }
+
+        compositionEngine.setPanels(assetLibrary.textureNames)
+        compositionEngine.setIcons(newTheme.icons.filter { loaded.contains($0) })
+    }
+
+    /// Cycle to the next built-in theme live (bound to the 'T' key) — handy for
+    /// an operator switching the room's vibe mid-event.
+    private func cycleTheme() {
+        themeIndex = (themeIndex + 1) % Theme.all.count
+        applyTheme(Theme.all[themeIndex])
+        NSLog("Sanctum theme → \(theme.displayName)")
+    }
+
+    /// Map a phase color-grade tint (an RGB multiplier) to a representative
+    /// solid color for placeholder panels.
+    private func placeholderColor(from tint: SIMD3<Float>) -> (UInt8, UInt8, UInt8, UInt8) {
+        func ch(_ v: Float) -> UInt8 { UInt8(max(30, min(235, v * 150))) }
+        return (ch(tint.x), ch(tint.y), ch(tint.z), 255)
+    }
+
     private func setupKeyboardHandling() {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             switch event.keyCode {
@@ -115,8 +145,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             case 2: // 'D' key — toggle debug overlay
                 self?.debugOverlay?.toggle()
                 return nil
-            case 15: // 'R' key — reset corruption
+            case 15: // 'R' key — reset energy arc
                 self?.corruptionEngine.reset()
+                return nil
+            case 17: // 'T' key — cycle visual theme
+                self?.cycleTheme()
                 return nil
             default:
                 return event
@@ -170,17 +203,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         uniforms.isBeat = audioState.isBeat ? 1.0 : 0.0
         uniforms.isTransient = audioState.isTransient ? 1.0 : 0.0
 
+        // Theme-driven look: interpolated color grade + effect profile
+        let phaseTint = theme.interpolatedTint(at: audioState.corruptionIndex)
+        uniforms.phaseTint = (phaseTint.x, phaseTint.y, phaseTint.z)
+        let fx = theme.effects
+        uniforms.refraction = fx.refraction
+        uniforms.aberration = fx.aberration
+        uniforms.crack = fx.crack
+        uniforms.warp = fx.warp
+        uniforms.fold = fx.fold
+        uniforms.shimmer = fx.shimmer
+        uniforms.saturation = fx.saturation
+        uniforms.brightness = fx.brightness
+
         // 5. Render pipeline
         guard let commandBuffer = renderer.commandQueue.makeCommandBuffer() else { return }
 
-        // Pass 1: Full-screen panel composition with crossfade
-        let corruption = audioState.corruptionIndex
-        let tint = SIMD4<Float>(
-            1.0 - corruption * 0.2,
-            1.0 - corruption * 0.3,
-            1.0 - corruption * 0.05,
-            1.0
-        )
+        // Pass 1: Full-screen panel composition with crossfade.
+        // Composite tint drifts from white toward the theme's energy tint —
+        // cathedral drains toward dark, beach stays bright and warm.
+        let et = theme.energyTint(at: audioState.corruptionIndex)
+        let tint = SIMD4<Float>(et.x, et.y, et.z, 1.0)
         let currentPanelName = compositionEngine.currentPanelName
         let nextPanelName = compositionEngine.nextPanelName
         if let currentTex = assetLibrary.texture(named: currentPanelName),
@@ -223,7 +266,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         displayManager.present()
 
         // 7. Update debug overlay
-        debugOverlay?.update(audioState: audioState, time: Double(time))
+        debugOverlay?.update(audioState: audioState, time: Double(time), theme: theme)
 
         currentAudioState = audioState
     }

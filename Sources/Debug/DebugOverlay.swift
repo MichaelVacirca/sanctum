@@ -23,7 +23,7 @@ final class DebugOverlay {
         overlayView.isHidden = !isVisible
     }
 
-    func update(audioState: AudioState, time: Double) {
+    func update(audioState: AudioState, time: Double, theme: Theme = .cathedral) {
         guard isVisible else { return }
 
         frameCount += 1
@@ -33,7 +33,7 @@ final class DebugOverlay {
             lastFPSTime = time
         }
 
-        let phase = CorruptionPhase.from(index: audioState.corruptionIndex)
+        let phaseName = theme.phaseName(at: audioState.corruptionIndex)
         let barLength = 20
 
         func bar(_ value: Float) -> String {
@@ -44,6 +44,7 @@ final class DebugOverlay {
         let text = """
         SANCTUM DEBUG
         FPS: \(currentFPS)
+        THEME: \(theme.displayName.uppercased())
         ─────────────────────────
         SUB-BASS [\(bar(audioState.subBass))] \(String(format: "%.2f", audioState.subBass))
         BASS     [\(bar(audioState.bass))] \(String(format: "%.2f", audioState.bass))
@@ -51,8 +52,8 @@ final class DebugOverlay {
         HIGHS    [\(bar(audioState.highs))] \(String(format: "%.2f", audioState.highs))
         ─────────────────────────
         BPM: \(String(format: "%.0f", audioState.bpm))  BEAT: \(audioState.isBeat ? "●" : "○")
-        CORRUPTION: [\(bar(audioState.corruptionIndex))] \(String(format: "%.3f", audioState.corruptionIndex))
-        PHASE: \(phase.rawValue.uppercased())
+        ENERGY: [\(bar(audioState.corruptionIndex))] \(String(format: "%.3f", audioState.corruptionIndex))
+        PHASE: \(phaseName)
         """
 
         overlayView.stringValue = text

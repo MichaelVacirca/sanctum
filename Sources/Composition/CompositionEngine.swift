@@ -14,16 +14,10 @@ final class CompositionEngine {
     private(set) var crossfade: Float = 0.0
     private var lastPhaseIndex: Int = 0
 
-    // Panel names for each corruption phase
-    // Sacred (0-0.2) → Awakening (0.2-0.4) → Fracture (0.4-0.6) → Profane (0.6-0.8) → Abyss (0.8-1.0)
-    private static let phaseOrder = [
-        "panel-sacred-blue",
-        "panel-golden-amber",
-        "panel-ruby-red",
-        "panel-emerald-purple",
-        "panel-corrupted",
-        "panel-fire"
-    ]
+    // Panel crossfade order across the energy arc, supplied by the active
+    // Theme. Defaults to the cathedral order so the engine works standalone
+    // (and existing tests/callers see unchanged behavior).
+    var panelOrder: [String] = Theme.cathedral.panelOrder
 
     init(canvasWidth: Float = 3840, canvasHeight: Float = 2160) {
         self.canvasWidth = canvasWidth
@@ -32,8 +26,8 @@ final class CompositionEngine {
 
     func setPanels(_ names: [String]) {
         self.panelNames = names
-        // Map phase order to available panels
-        phasePanels = Self.phaseOrder.filter { names.contains($0) }
+        // Map the theme's panel order to whichever panels actually loaded
+        phasePanels = panelOrder.filter { names.contains($0) }
         // If we don't have all phases, pad with whatever we have
         if phasePanels.isEmpty {
             phasePanels = names
@@ -44,6 +38,10 @@ final class CompositionEngine {
 
     func setIcons(_ names: [String]) {
         self.iconNames = names
+        // Clear any icons from a previous theme so switching is clean.
+        for node in sceneGraph.allNodes(ofType: .icon) {
+            sceneGraph.removeNode(id: node.id)
+        }
         for (i, name) in names.prefix(6).enumerated() {
             let node = SceneNode(
                 id: "icon-\(i)", type: .icon, textureName: name,
