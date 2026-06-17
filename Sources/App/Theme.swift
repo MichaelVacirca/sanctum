@@ -46,7 +46,8 @@ struct Theme: Sendable {
         var warp: Float
         /// Escher-style geometry folding at peak energy. 0 = none.
         var fold: Float
-        /// Sun-glint / water-caustic sparkle on highs. 0 = none (cathedral).
+        /// Master switch for the beach light suite — water caustics, beat
+        /// sparkle, god rays, and the warm→neon glow shift. 0 = none (cathedral).
         var shimmer: Float
         /// Extra saturation ramp with energy. 1.0 = original.
         var saturation: Float

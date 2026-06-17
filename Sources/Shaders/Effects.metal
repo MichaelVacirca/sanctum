@@ -45,6 +45,12 @@ float crackPattern(float2 uv, float time, float intensity) {
     return smoothstep(0.0, 0.05 * intensity, edge);
 }
 
+// Cheap hash for sparkle placement.
+float seaHash(float2 p) {
+    float h = dot(p, float2(127.1, 311.7));
+    return fract(sin(h) * 43758.5453123);
+}
+
 // --- Main effects fragment shader ---
 
 fragment float4 effectsFragment(
@@ -108,13 +114,48 @@ fragment float4 effectsFragment(
     float3 tint = phaseTint + highs * 0.15;
     color.rgb *= tint;
 
-    // --- Shimmer / Caustics (sun-glint on water; beach only, gated) ---
+    // --- Beach water, caustics, sparkle & god rays (gated; cathedral=0) ---
+    // Everything here is additive light scaled by the theme's shimmer knob, so
+    // the cathedral theme (shimmer == 0) skips it entirely and is unchanged.
     if (pShimmer > 0.001) {
-        float caustic = sin(uv.x * 40.0 + time * 1.5 + sin(uv.y * 30.0 - time))
-                      * cos(uv.y * 35.0 - time * 1.2);
-        caustic = max(0.0, caustic);
-        float glint = caustic * (0.12 + highs * 0.55 + audio.isBeat * 0.3);
-        color.rgb += glint * pShimmer * float3(1.0, 0.97, 0.85);
+        float energy = corruption;
+        // Sea fills the lower frame, sky the upper — soft masks, no hard line.
+        float sea = smoothstep(0.46, 0.64, uv.y);
+        float sky = smoothstep(0.62, 0.12, uv.y);
+
+        // Calm = warm gold; peak = cycling cyan/magenta neon (the midnight rave).
+        float3 warmGlow = float3(1.0, 0.92, 0.70);
+        float3 neon = mix(float3(0.35, 1.0, 1.0), float3(1.0, 0.35, 0.95),
+                          0.5 + 0.5 * sin(time * 1.6));
+        float3 glow = mix(warmGlow, neon, smoothstep(0.5, 0.85, energy));
+
+        // Undulating coordinates so the light network rolls like gentle surf,
+        // breathing harder with the bass.
+        float2 wuv = uv;
+        wuv.x += sin(uv.y * 22.0 - time * 1.6) * (0.01 + bass * 0.02);
+        wuv.y += sin(uv.x * 16.0 - time * 2.2) * 0.008;
+
+        // Caustics: two crossing wave fields make bright veins of light.
+        float c1 = sin(wuv.x * 38.0 + time * 1.5 + sin(wuv.y * 28.0 - time));
+        float c2 = cos(wuv.y * 34.0 - time * 1.2 + cos(wuv.x * 20.0 + time));
+        float caustic = pow(max(0.0, c1 * c2), 2.0);
+        float causticAmt = caustic * (0.12 + highs * 0.45 + bass * 0.30) * sea;
+
+        // Sparkle: pinpoint glints on the water that pop on the kick.
+        float2 cell = floor(uv * float2(130.0, 80.0));
+        float twinkle = seaHash(cell + floor(time * 7.0));
+        float sparkle = step(0.978 - audio.isBeat * 0.03, twinkle)
+                      * (0.6 + highs) * sea;
+
+        color.rgb += (causticAmt + sparkle) * pShimmer * glow;
+
+        // God rays / light shafts fanning from just above the horizon, in the
+        // sky, pulsing with the bass and flaring on the beat.
+        float2 toLight = uv - float2(0.5, -0.08);
+        float ang = atan2(toLight.y, toLight.x);
+        float rays = pow(0.5 + 0.5 * sin(ang * 24.0 + time * 0.5), 3.0);
+        float rayAmt = rays * sky * (0.05 + bass * 0.12 + audio.isBeat * 0.10) * pShimmer;
+        color.rgb += rayAmt * warmGlow;
     }
 
     // --- Warp distortion (grows with energy, gated by profile.warp) ---
