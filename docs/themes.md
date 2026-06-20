@@ -13,11 +13,12 @@ so dressing the room for the next party is a content change, not an engine rewri
 | **Cathedral** | `cathedral` | sacred → awakening → fracture → profane → abyss | The original gothic stained glass that *corrupts* from sacred to profane as energy climbs. Cracks, melting, Escher folding, toxic neon. Edgy and dark. |
 | **Beach Resort** | `beach` | sunset → golden hour → tropical dusk → neon night → midnight | A feel-good resort night. The same build adds vibrance, glow, shimmer and color instead of decay. Stays bright and fun all night. |
 
-The beach theme also enables a dedicated light suite (gated by the `shimmer`
-knob, off for cathedral): rolling **water caustics** across the lower frame,
-**beat sparkles** that glint on the kick, **god rays** fanning through the sky
-with the bass, and a **warm→neon glow shift** that cycles cyan/magenta as the
-night peaks.
+The beach theme centers its reactivity on its two motifs (gated by the
+`shimmer` knob, off for cathedral): a **beating sun** that blooms and throws
+rays on the kick (pulsing with the bass), **ocean waves** that roll and surge
+in time with the beat while foam crests catch the light, and a **warm→neon
+shift** that cycles cyan/magenta as the night peaks. The sun's position is set
+per theme (`Theme.sunPosition`).
 
 A theme defines, per phase, a color grade (`tint`) and a display name, plus a
 panel crossfade order, a drifting icon set, an **effect profile** (how strongly

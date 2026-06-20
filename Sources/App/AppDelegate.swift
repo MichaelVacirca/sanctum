@@ -215,6 +215,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         uniforms.shimmer = fx.shimmer
         uniforms.saturation = fx.saturation
         uniforms.brightness = fx.brightness
+        uniforms.sunPos = (theme.sunPosition.x, theme.sunPosition.y)
 
         // 5. Render pipeline
         guard let commandBuffer = renderer.commandQueue.makeCommandBuffer() else { return }

@@ -46,8 +46,9 @@ struct Theme: Sendable {
         var warp: Float
         /// Escher-style geometry folding at peak energy. 0 = none.
         var fold: Float
-        /// Master switch for the beach light suite — water caustics, beat
-        /// sparkle, god rays, and the warm→neon glow shift. 0 = none (cathedral).
+        /// Master switch for the beach reactivity — the beating sun (bloom +
+        /// rays on the kick), rolling ocean waves, and the warm→neon shift.
+        /// 0 = none (cathedral).
         var shimmer: Float
         /// Extra saturation ramp with energy. 1.0 = original.
         var saturation: Float
@@ -69,6 +70,10 @@ struct Theme: Sendable {
     let effects: EffectProfile
     /// Canvas clear color (shows only at edges / before art loads).
     let clearColor: SIMD3<Float>
+    /// Sun/moon position (0-1 UV) the beach sun-pulse effect beats around.
+    /// Unused by themes with `effects.shimmer == 0` (e.g. cathedral).
+    let sunPosition: SIMD2<Float>
+
 
     // MARK: - Arc sampling
 
@@ -159,7 +164,8 @@ extension Theme {
             brightness: 1.15,
             energyTint: SIMD3(0.8, 0.7, 0.95)
         ),
-        clearColor: SIMD3(0, 0, 0)
+        clearColor: SIMD3(0, 0, 0),
+        sunPosition: SIMD2(0.5, 0.4)
     )
 
     /// Beach / resort night: a feel-good build from a warm sunset to an
@@ -198,6 +204,7 @@ extension Theme {
             brightness: 1.25,  // bright, poppy, resort
             energyTint: SIMD3(1.05, 1.00, 0.95) // stays bright + warm, never dark
         ),
-        clearColor: SIMD3(0.02, 0.04, 0.10) // deep tropical night blue
+        clearColor: SIMD3(0.02, 0.04, 0.10), // deep tropical night blue
+        sunPosition: SIMD2(0.5, 0.5)         // centered sun/moon over the sea
     )
 }

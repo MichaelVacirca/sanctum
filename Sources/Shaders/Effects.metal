@@ -45,12 +45,6 @@ float crackPattern(float2 uv, float time, float intensity) {
     return smoothstep(0.0, 0.05 * intensity, edge);
 }
 
-// Cheap hash for sparkle placement.
-float seaHash(float2 p) {
-    float h = dot(p, float2(127.1, 311.7));
-    return fract(sin(h) * 43758.5453123);
-}
-
 // --- Main effects fragment shader ---
 
 fragment float4 effectsFragment(
@@ -114,48 +108,48 @@ fragment float4 effectsFragment(
     float3 tint = phaseTint + highs * 0.15;
     color.rgb *= tint;
 
-    // --- Beach water, caustics, sparkle & god rays (gated; cathedral=0) ---
-    // Everything here is additive light scaled by the theme's shimmer knob, so
-    // the cathedral theme (shimmer == 0) skips it entirely and is unchanged.
+    // --- Beach reactivity: a beating sun + rolling ocean waves ---
+    // Gated by the theme's shimmer knob, so cathedral (shimmer == 0) is
+    // untouched. The reactions are centred on the two beach motifs the music
+    // drives: the sun pulses/blooms on the kick, the waves roll and surge.
     if (pShimmer > 0.001) {
-        float energy = corruption;
-        // Sea fills the lower frame, sky the upper — soft masks, no hard line.
-        float sea = smoothstep(0.46, 0.64, uv.y);
-        float sky = smoothstep(0.62, 0.12, uv.y);
+        const float aspect = 16.0 / 9.0;        // keep the sun round on a 16:9 wall
+        float beatHit = audio.isBeat;
+        float throb = 0.5 + 0.5 * sin(audio.beatPhase * 6.28318); // per-beat swell
 
-        // Calm = warm gold; peak = cycling cyan/magenta neon (the midnight rave).
-        float3 warmGlow = float3(1.0, 0.92, 0.70);
-        float3 neon = mix(float3(0.35, 1.0, 1.0), float3(1.0, 0.35, 0.95),
+        // Warm by day, cycling neon at the peak (the midnight rave).
+        float3 sunWarm = float3(1.0, 0.82, 0.45);
+        float3 neon = mix(float3(0.40, 1.0, 1.0), float3(1.0, 0.45, 1.0),
                           0.5 + 0.5 * sin(time * 1.6));
-        float3 glow = mix(warmGlow, neon, smoothstep(0.5, 0.85, energy));
+        float3 sunCol = mix(sunWarm, neon, smoothstep(0.55, 0.9, corruption));
 
-        // Undulating coordinates so the light network rolls like gentle surf,
-        // breathing harder with the bass.
-        float2 wuv = uv;
-        wuv.x += sin(uv.y * 22.0 - time * 1.6) * (0.01 + bass * 0.02);
-        wuv.y += sin(uv.x * 16.0 - time * 2.2) * 0.008;
+        // ---- The beating sun ----
+        float2 d = uv - float2(audio.sunPos[0], audio.sunPos[1]);
+        d.x *= aspect;
+        float dist = length(d);
+        // Tight glow halo that swells on the bass and flares on the kick.
+        float halo = exp(-dist * (10.0 - bass * 2.0 - beatHit * 1.0));
+        // Thin rays radiating from the sun, slowly turning, pulsing on the beat.
+        float ang = atan2(d.y, d.x);
+        float rays = pow(0.5 + 0.5 * sin(ang * 18.0 + time * 0.45), 3.0);
+        float rayGlow = rays * exp(-dist * 4.5) * (0.10 + bass * 0.32 + beatHit * 0.28);
+        color.rgb += (halo * (0.35 + throb * 0.40) + rayGlow) * sunCol * pShimmer;
 
-        // Caustics: two crossing wave fields make bright veins of light.
-        float c1 = sin(wuv.x * 38.0 + time * 1.5 + sin(wuv.y * 28.0 - time));
-        float c2 = cos(wuv.y * 34.0 - time * 1.2 + cos(wuv.x * 20.0 + time));
-        float caustic = pow(max(0.0, c1 * c2), 2.0);
-        float causticAmt = caustic * (0.12 + highs * 0.45 + bass * 0.30) * sea;
-
-        // Sparkle: pinpoint glints on the water that pop on the kick.
-        float2 cell = floor(uv * float2(130.0, 80.0));
-        float twinkle = seaHash(cell + floor(time * 7.0));
-        float sparkle = step(0.978 - audio.isBeat * 0.03, twinkle)
-                      * (0.6 + highs) * sea;
-
-        color.rgb += (causticAmt + sparkle) * pShimmer * glow;
-
-        // God rays / light shafts fanning from just above the horizon, in the
-        // sky, pulsing with the bass and flaring on the beat.
-        float2 toLight = uv - float2(0.5, -0.08);
-        float ang = atan2(toLight.y, toLight.x);
-        float rays = pow(0.5 + 0.5 * sin(ang * 24.0 + time * 0.5), 3.0);
-        float rayAmt = rays * sky * (0.05 + bass * 0.12 + audio.isBeat * 0.10) * pShimmer;
-        color.rgb += rayAmt * warmGlow;
+        // ---- Rolling ocean waves ----
+        // Spare the bright window frame: fade the water FX out on bright pixels.
+        float luma = dot(color.rgb, float3(0.299, 0.587, 0.114));
+        float viewMask = 1.0 - smoothstep(0.72, 0.96, luma);
+        float sea = smoothstep(0.52, 0.63, uv.y) * viewMask;
+        // The beat advances the surf, so waves roll in time with the music.
+        float roll = time * 1.2 + audio.beatPhase * 1.4;
+        float waves = sin(uv.y * 34.0 - roll * 3.0 + sin(uv.x * 5.0 + time * 0.3) * 1.2);
+        // Water rises and falls...
+        color.rgb *= 1.0 + waves * 0.10 * sea * (0.5 + bass);
+        // ...and foam crests catch the light, swelling on the kick.
+        float crest = smoothstep(0.5, 1.0, waves);
+        float swell = 0.25 + bass * 0.7 + beatHit * 0.45;
+        float3 foamCol = mix(float3(0.75, 0.92, 1.0), neon, smoothstep(0.6, 0.9, corruption));
+        color.rgb += crest * swell * sea * pShimmer * foamCol * 0.55;
     }
 
     // --- Warp distortion (grows with energy, gated by profile.warp) ---

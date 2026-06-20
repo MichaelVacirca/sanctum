@@ -27,7 +27,8 @@ struct AudioUniforms {
     float shimmer;        // effect profile: sun-glint / caustic sparkle (0=off)
     float saturation;     // effect profile: saturation ramp with energy
     float brightness;     // effect profile: final brightness multiplier
-    float padding[3];     // align to 16 bytes (96 total)
+    float sunPos[2];      // sun/moon position in 0-1 UV (beach sun pulse)
+    float padding[1];     // align to 16 bytes (96 total)
 };
 
 struct CompositionUniforms {

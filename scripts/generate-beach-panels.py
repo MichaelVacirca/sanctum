@@ -259,12 +259,14 @@ def generate_beach_panel(name, cfg):
                     edge = 1.0 - (d / sun_r) ** 2
                     r, g, b = lerp_rgb((r, g, b), sun[3], min(1.0, 0.55 + 0.45 * edge))
                 else:
-                    glow = max(0.0, 1.0 - (d - sun_r) / (sun_r * 2.4))
+                    # Soft, contained halo — the live shader adds the bright,
+                    # beat-pulsing glow on top, so keep the baked one restrained.
+                    glow = max(0.0, 1.0 - (d - sun_r) / (sun_r * 1.8))
                     if glow > 0:
                         gc = sun[4]
-                        r += (gc[0]) * glow * 0.5
-                        g += (gc[1]) * glow * 0.5
-                        b += (gc[2]) * glow * 0.5
+                        r += (gc[0]) * glow * 0.3
+                        g += (gc[1]) * glow * 0.3
+                        b += (gc[2]) * glow * 0.3
 
             # Sea sparkle + sun reflection column
             if in_sea:
@@ -285,22 +287,11 @@ def generate_beach_panel(name, cfg):
                 g += 80 * neon * glowline * 0.6
                 b += 220 * neon * glowline * 0.6
 
-            # Leaded-glass lines (Voronoi) — kept light so the beach reads as a
-            # view through the window rather than a heavy stained-glass mosaic.
-            md, sd, cid = voronoi_cell(x, y, glass_grid)
-            edge = sd - md
-            if edge < 2.5:
-                lead = 0.5
-            elif edge < 5:
-                lead = 0.78
-            else:
-                lead = 1.0
-            jitter = 1.0 + (hash2d(cid, cid * 7 + 3) - 0.5) * 0.14
-            r *= lead * jitter
-            g *= lead * jitter
-            b *= lead * jitter
+            # (No stained-glass facets — the view through the window is a clean
+            # beach scene; the sun pulse and rolling waves are added live by the
+            # effects shader.)
 
-            # Palm silhouette (dark translucent glass)
+            # Palm silhouette
             if palm_mask[y][x]:
                 r, g, b = lerp_rgb((r, g, b), (10, 12, 22), 0.9)
 
@@ -340,21 +331,21 @@ PANELS = {
         "horizon": 0.62,
         "sky_top": (250, 150, 70), "sky_horizon": (255, 110, 90),
         "sea_horizon": (240, 120, 80), "sea_near": (120, 50, 90),
-        "sun": (0.5, 0.55, 0.16, (255, 240, 200), (255, 170, 90)),
+        "sun": (0.5, 0.5, 0.16, (255, 240, 200), (255, 170, 90)),
         "palms": False, "stars": 0, "glass_grid": 160, "seed": 1,
     },
     "panel-beach-goldenhour": {
         "horizon": 0.6,
         "sky_top": (255, 200, 90), "sky_horizon": (255, 160, 110),
         "sea_horizon": (230, 150, 100), "sea_near": (150, 90, 110),
-        "sun": (0.66, 0.5, 0.12, (255, 245, 210), (255, 200, 120)),
+        "sun": (0.5, 0.5, 0.12, (255, 245, 210), (255, 200, 120)),
         "palms": True, "stars": 0, "glass_grid": 150, "seed": 2,
     },
     "panel-beach-dusk": {
         "horizon": 0.58,
         "sky_top": (40, 50, 130), "sky_horizon": (220, 90, 150),
         "sea_horizon": (150, 70, 140), "sea_near": (30, 50, 110),
-        "sun": (0.5, 0.56, 0.10, (255, 210, 180), (230, 110, 150)),
+        "sun": (0.5, 0.5, 0.10, (255, 210, 180), (230, 110, 150)),
         "palms": True, "stars": 60, "glass_grid": 145,
         "star_color": (255, 240, 220), "seed": 3,
     },
@@ -362,7 +353,7 @@ PANELS = {
         "horizon": 0.56,
         "sky_top": (10, 10, 45), "sky_horizon": (120, 30, 130),
         "sea_horizon": (60, 20, 110), "sea_near": (10, 15, 60),
-        "sun": (0.32, 0.3, 0.09, (220, 250, 255), (90, 200, 255)),
+        "sun": (0.5, 0.5, 0.09, (220, 250, 255), (90, 200, 255)),
         "palms": True, "stars": 150, "neon": 0.7, "glass_grid": 140,
         "star_color": (180, 240, 255), "seed": 4,
     },
@@ -370,7 +361,7 @@ PANELS = {
         "horizon": 0.55,
         "sky_top": (4, 6, 30), "sky_horizon": (40, 20, 90),
         "sea_horizon": (30, 25, 95), "sea_near": (5, 10, 45),
-        "sun": (0.7, 0.26, 0.08, (235, 250, 255), (120, 210, 255)),
+        "sun": (0.5, 0.5, 0.08, (235, 250, 255), (120, 210, 255)),
         "palms": True, "stars": 320, "neon": 1.0, "glass_grid": 135,
         "star_color": (200, 245, 255), "seed": 5,
     },
