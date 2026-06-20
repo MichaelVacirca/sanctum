@@ -49,7 +49,7 @@ final class CompositionEngine {
                     Float.random(in: canvasWidth * 0.2...canvasWidth * 0.8),
                     Float.random(in: canvasHeight * 0.2...canvasHeight * 0.8)
                 ),
-                scale: 0.3, opacity: 0.9, zIndex: 10 + i
+                scale: 0.3, opacity: 0.5, zIndex: 10 + i
             )
             sceneGraph.addNode(node)
         }

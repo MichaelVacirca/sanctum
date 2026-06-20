@@ -215,6 +215,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         uniforms.shimmer = fx.shimmer
         uniforms.saturation = fx.saturation
         uniforms.brightness = fx.brightness
+        uniforms.flash = fx.flash
         uniforms.sunPos = (theme.sunPosition.x, theme.sunPosition.y)
 
         // 5. Render pipeline
@@ -238,14 +239,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
-        // Pass 1b: Overlay icons
+        // Pass 1b: Overlay icons — draw each group with its own texture so the
+        // drifting icons show their real art (not all sharing the first one).
         let iconNodes = compositionEngine.sceneGraph.allNodes(ofType: .icon)
-        if let iconTex = assetLibrary.texture(named: iconNodes.first?.textureName ?? "") {
-            renderer.shaderPipeline.compositeIcons(
-                iconNodes: iconNodes,
-                iconTexture: iconTex,
-                commandBuffer: commandBuffer
-            )
+        for (name, nodes) in Dictionary(grouping: iconNodes, by: { $0.textureName }) {
+            if let iconTex = assetLibrary.texture(named: name) {
+                renderer.shaderPipeline.compositeIcons(
+                    iconNodes: nodes,
+                    iconTexture: iconTex,
+                    commandBuffer: commandBuffer
+                )
+            }
         }
 
         // Pass 2: Effects

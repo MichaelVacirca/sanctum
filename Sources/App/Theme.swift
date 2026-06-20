@@ -54,6 +54,9 @@ struct Theme: Sendable {
         var saturation: Float
         /// Final overall brightness multiplier (pops on the video wall).
         var brightness: Float
+        /// Beat-flash / transient-flash / candlelight-strobe amount. 1.0 keeps
+        /// the original cranked cathedral flashing; lower = calmer (beach).
+        var flash: Float
         /// Per-channel multiplier reached at full energy, lerped from white.
         /// Cathedral drains toward black; beach stays bright and warm.
         var energyTint: SIMD3<Float>
@@ -162,6 +165,7 @@ extension Theme {
             shimmer: 0.0,
             saturation: 1.0,
             brightness: 1.15,
+            flash: 1.0,
             energyTint: SIMD3(0.8, 0.7, 0.95)
         ),
         clearColor: SIMD3(0, 0, 0),
@@ -202,6 +206,7 @@ extension Theme {
             shimmer: 1.0,      // sun-glint + water caustics — the beachy magic
             saturation: 0.7,   // vivid but not toxic
             brightness: 1.25,  // bright, poppy, resort
+            flash: 0.2,        // calm — gentle beat pulse, no strobe/flash
             energyTint: SIMD3(1.05, 1.00, 0.95) // stays bright + warm, never dark
         ),
         clearColor: SIMD3(0.02, 0.04, 0.10), // deep tropical night blue

@@ -71,6 +71,7 @@ fragment float4 effectsFragment(
     float pShimmer    = audio.shimmer;
     float pSaturation = audio.saturation;
     float pBrightness = audio.brightness;
+    float pFlash      = audio.flash;
     float3 phaseTint  = float3(audio.phaseTint[0], audio.phaseTint[1], audio.phaseTint[2]);
 
     // --- Glass Refraction (driven by sub-bass) ---
@@ -91,14 +92,16 @@ fragment float4 effectsFragment(
     color.rgb *= leadDarken;
 
     // --- Candlelight / Backlighting (driven by beat phase) ---
+    // The hard strobe (step) only ramps in with the theme's flash amount, so
+    // calm themes (beach) keep the smooth pulse instead of flickering.
     float pulse = sin(audio.beatPhase * 3.14159 * 2.0);
     float lightIntensity = mix(
         0.7 + 0.3 * pulse,
         0.3 + 0.7 * step(0.5, fract(audio.beatPhase * 2.0)),
-        corruption
+        corruption * pFlash
     );
-    // Strong beat flash
-    float beatFlash = audio.isBeat * (1.0 - corruption * 0.3) * 0.6;
+    // Beat flash (scaled by theme flash amount)
+    float beatFlash = audio.isBeat * (1.0 - corruption * 0.3) * 0.6 * pFlash;
     lightIntensity += beatFlash;
     // Bass throb — the whole image breathes with the bass
     lightIntensity += bass * 0.25;
@@ -175,9 +178,9 @@ fragment float4 effectsFragment(
         color = mix(color, foldedColor, foldStrength * 0.6 * pFold);
     }
 
-    // --- Transient flash (drops/breakdowns) ---
+    // --- Transient flash (drops/breakdowns), scaled by theme flash amount ---
     if (audio.isTransient > 0.5) {
-        color.rgb = mix(color.rgb, float3(1.2, 1.1, 1.3), 0.6);
+        color.rgb = mix(color.rgb, float3(1.2, 1.1, 1.3), 0.6 * pFlash);
     }
 
     // --- Saturation push with energy (ramp scaled by profile) ---
