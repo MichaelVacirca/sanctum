@@ -66,7 +66,10 @@ SANCTUM_ASSETS=/tmp/preview python3 scripts/generate-beach-panels.py
 If the art for a theme isn't present, Sanctum falls back to solid color
 placeholders derived from each phase's tint, so the arc is still visible.
 
-**Panels** (one per phase, crossfaded as energy builds):
+**Panels** (one per phase, crossfaded as energy builds): each is the beach
+framed as the view through an arched resort window (cream Palladian frame,
+sunburst arch, glazed panes). The window stays put while the view beyond it
+transitions sunset → midnight:
 `panel-beach-sunset`, `panel-beach-goldenhour`, `panel-beach-dusk`,
 `panel-beach-neonnight`, `panel-beach-midnight`.
 

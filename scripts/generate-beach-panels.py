@@ -141,6 +141,83 @@ def build_palm_mask(width, height, palms):
     return mask
 
 
+def _shadow(d, s):
+    """Recessed-edge shadow factor: darkest at an edge, fading to 1.0 over s px."""
+    if d < 0 or d >= s:
+        return 1.0
+    return 0.55 + 0.45 * (d / s)
+
+
+def draw_resort_window(pixels):
+    """Overlay an arched resort window (cream frame + sunburst arch + pane
+    muntins + sill) so the beach scene becomes the view through the window."""
+    FT = max(2, int(0.055 * WIDTH))       # frame thickness
+    sill_h = max(3, int(0.11 * HEIGHT))
+    op_l, op_r = FT, WIDTH - FT
+    op_t, op_b = FT, HEIGHT - sill_h
+    op_w = op_r - op_l
+    cx = (op_l + op_r) / 2.0
+    radius_x = op_w / 2.0
+    y_spring = op_t + int(0.36 * HEIGHT)  # arch springline
+    arch_h = y_spring - op_t
+    mun_w = max(1, int(0.012 * WIDTH))    # muntin half-width
+    col1 = op_l + op_w // 3
+    col2 = op_l + 2 * op_w // 3
+    tr_h = max(1, int(0.014 * HEIGHT))    # transom half-height
+    shadow = max(2, int(0.014 * WIDTH))
+    base = (240, 230, 210)
+
+    for y in range(HEIGHT):
+        grad = 1.0 - 0.18 * (y / HEIGHT)  # subtle top-lit gradient on the frame
+        fcol = (base[0] * grad, base[1] * grad, base[2] * grad)
+        for x in range(WIDTH):
+            idx = (y * WIDTH + x) * 4
+            in_open = (op_l <= x < op_r and op_t <= y < op_b)
+            is_frame = not in_open
+
+            if in_open and y < y_spring:
+                tnorm = (x - cx) / radius_x
+                if abs(tnorm) >= 1.0:
+                    is_frame = True
+                elif y < y_spring - math.sqrt(1 - tnorm * tnorm) * arch_h:
+                    is_frame = True
+
+            is_mun = False
+            if in_open and not is_frame:
+                if y >= y_spring:
+                    if abs(x - col1) < mun_w or abs(x - col2) < mun_w:
+                        is_mun = True
+                    if abs(y - y_spring) < tr_h:
+                        is_mun = True
+                else:
+                    ang = math.atan2(y_spring - y, x - cx)
+                    rad = math.hypot(x - cx, y_spring - y)
+                    for i in range(1, 6):
+                        if abs(ang - i * math.pi / 6) * rad < mun_w:
+                            is_mun = True
+                            break
+                    if abs(y - y_spring) < tr_h:
+                        is_mun = True
+
+            if is_frame or is_mun:
+                pixels[idx] = clamp8(fcol[0])
+                pixels[idx + 1] = clamp8(fcol[1])
+                pixels[idx + 2] = clamp8(fcol[2])
+                pixels[idx + 3] = 255
+            else:
+                # Recessed shadow on the glass next to frame/muntins → depth.
+                sh = min(_shadow(x - op_l, shadow), _shadow(op_r - 1 - x, shadow))
+                if y >= y_spring:
+                    sh = min(sh, _shadow(op_b - 1 - y, shadow),
+                             _shadow(abs(x - col1) - mun_w, shadow),
+                             _shadow(abs(x - col2) - mun_w, shadow),
+                             _shadow(y - y_spring - tr_h, shadow))
+                if sh < 1.0:
+                    pixels[idx] = clamp8(pixels[idx] * sh)
+                    pixels[idx + 1] = clamp8(pixels[idx + 1] * sh)
+                    pixels[idx + 2] = clamp8(pixels[idx + 2] * sh)
+
+
 def generate_beach_panel(name, cfg):
     print(f"  rendering {name} ({WIDTH}x{HEIGHT})...")
     pixels = bytearray(WIDTH * HEIGHT * 4)
@@ -208,13 +285,14 @@ def generate_beach_panel(name, cfg):
                 g += 80 * neon * glowline * 0.6
                 b += 220 * neon * glowline * 0.6
 
-            # Stained-glass lead lines (Voronoi) + per-cell tint jitter
+            # Leaded-glass lines (Voronoi) — kept light so the beach reads as a
+            # view through the window rather than a heavy stained-glass mosaic.
             md, sd, cid = voronoi_cell(x, y, glass_grid)
             edge = sd - md
-            if edge < 3:
-                lead = 0.22
-            elif edge < 6:
-                lead = 0.55
+            if edge < 2.5:
+                lead = 0.5
+            elif edge < 5:
+                lead = 0.78
             else:
                 lead = 1.0
             jitter = 1.0 + (hash2d(cid, cid * 7 + 3) - 0.5) * 0.14
@@ -245,6 +323,10 @@ def generate_beach_panel(name, cfg):
                 pixels[i] = clamp8(pixels[i] + col[0] * bright * f)
                 pixels[i + 1] = clamp8(pixels[i + 1] + col[1] * bright * f)
                 pixels[i + 2] = clamp8(pixels[i + 2] + col[2] * bright * f)
+
+    # Frame the beach as the view through an arched resort window (drawn last,
+    # on top of the scene + stars).
+    draw_resort_window(pixels)
 
     path = os.path.join(OUTPUT_DIR, f"{name}.png")
     data = make_png(WIDTH, HEIGHT, pixels)
