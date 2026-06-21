@@ -8,7 +8,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var renderer: MetalRenderer!
     private var audioCapture: AudioCapture!
     private var analysisEngine: AnalysisEngine!
-    private var corruptionEngine: CorruptionEngine!
+    private var arcController: ArcController!
     private var compositionEngine: CompositionEngine!
     private var assetLibrary: AssetLibrary!
     private var displayManager: DisplayManager!
@@ -22,6 +22,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var currentAudioState = AudioState.silent
     private var theme: Theme = .cathedral
     private var themeIndex: Int = 0
+    // Smoothed audio values fed to the shader (kills per-frame flicker)
+    private var smoothBands: (Float, Float, Float, Float) = (0, 0, 0, 0)
+    private var beatEnv: Float = 0
+    private var transientEnv: Float = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
@@ -59,8 +63,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Audio
         audioCapture = AudioCapture(bufferSize: config.audioBufferSize)
         analysisEngine = AnalysisEngine(sampleRate: Float(audioCapture.sampleRate))
-        corruptionEngine = CorruptionEngine(
-            windowDuration: config.corruptionWindowHours * 3600
+        arcController = ArcController(
+            mode: ArcController.Mode(rawValue: config.arcMode) ?? .energy,
+            startHour: ArcController.parseHour(config.scheduleStart, fallback: 21),
+            endHour: ArcController.parseHour(config.scheduleEnd, fallback: 2),
+            energyWindow: config.corruptionWindowHours * 3600
         )
 
         // Composition
@@ -145,11 +152,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             case 2: // 'D' key — toggle debug overlay
                 self?.debugOverlay?.toggle()
                 return nil
-            case 15: // 'R' key — reset energy arc
-                self?.corruptionEngine.reset()
+            case 15: // 'R' — roll the arc all the way back to the start (sunset)
+                self?.arcController.reset()
                 return nil
             case 17: // 'T' key — cycle visual theme
                 self?.cycleTheme()
+                return nil
+            case 124: // → advance the arc (manual)
+                self?.arcController.advance(by: 0.05)
+                return nil
+            case 123: // ← roll the arc back (manual)
+                self?.arcController.advance(by: -0.05)
+                return nil
+            case 126: // ↑ advance faster (manual)
+                self?.arcController.advance(by: 0.2)
+                return nil
+            case 125: // ↓ roll back faster (manual)
+                self?.arcController.advance(by: -0.2)
+                return nil
+            case 0: // 'A' — resume automatic advance (schedule / energy)
+                self?.arcController.resumeAuto()
                 return nil
             default:
                 return event
@@ -186,22 +208,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let samples = audioCapture.getRecentSamples(count: config.audioBufferSize)
         var audioState = analysisEngine.analyze(samples: samples)
 
-        // 2. Update corruption
-        corruptionEngine.update(energy: audioState.overallEnergy, deltaTime: deltaTime)
-        audioState.corruptionIndex = corruptionEngine.corruptionIndex
+        // 2. Advance the arc (energy / clock schedule / manual scrub)
+        arcController.update(energy: audioState.overallEnergy, deltaTime: deltaTime)
+        audioState.corruptionIndex = arcController.index
 
         // 3. Update composition (scene graph)
         compositionEngine.update(audioState: audioState, deltaTime: deltaTime)
 
+        // Smooth the audio values feeding the shader so jumpy FFT/beat data
+        // doesn't make the image flicker: bands lerp toward their targets, and
+        // beat/transient become short decaying pulses instead of 1-frame flashes.
+        let bandLerp: Float = 0.30
+        smoothBands.0 += (audioState.subBass - smoothBands.0) * bandLerp
+        smoothBands.1 += (audioState.bass    - smoothBands.1) * bandLerp
+        smoothBands.2 += (audioState.mids    - smoothBands.2) * bandLerp
+        smoothBands.3 += (audioState.highs   - smoothBands.3) * bandLerp
+        beatEnv = max(beatEnv * 0.82, audioState.isBeat ? 1.0 : 0.0)
+        transientEnv = max(transientEnv * 0.88, audioState.isTransient ? 1.0 : 0.0)
+
         // 4. Build audio uniforms for shaders
         var uniforms = AudioUniforms()
-        uniforms.bands = (audioState.subBass, audioState.bass, audioState.mids, audioState.highs)
+        uniforms.bands = smoothBands
         uniforms.bpm = audioState.bpm
         uniforms.beatPhase = audioState.beatPhase
         uniforms.corruptionIndex = audioState.corruptionIndex
         uniforms.time = time
-        uniforms.isBeat = audioState.isBeat ? 1.0 : 0.0
-        uniforms.isTransient = audioState.isTransient ? 1.0 : 0.0
+        uniforms.isBeat = beatEnv
+        uniforms.isTransient = transientEnv
 
         // Theme-driven look: interpolated color grade + effect profile
         let phaseTint = theme.interpolatedTint(at: audioState.corruptionIndex)
@@ -271,7 +304,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         displayManager.present()
 
         // 7. Update debug overlay
-        debugOverlay?.update(audioState: audioState, time: Double(time), theme: theme)
+        let arcStatus = arcController.isManual
+            ? "MANUAL  (A = resume auto)"
+            : (config.arcMode == "schedule"
+               ? "AUTO \(config.scheduleStart)→\(config.scheduleEnd)"
+               : "AUTO energy")
+        debugOverlay?.update(audioState: audioState, time: Double(time),
+                             theme: theme, arc: arcStatus)
 
         currentAudioState = audioState
     }

@@ -178,10 +178,9 @@ fragment float4 effectsFragment(
         color = mix(color, foldedColor, foldStrength * 0.6 * pFold);
     }
 
-    // --- Transient flash (drops/breakdowns), scaled by theme flash amount ---
-    if (audio.isTransient > 0.5) {
-        color.rgb = mix(color.rgb, float3(1.2, 1.1, 1.3), 0.6 * pFlash);
-    }
+    // --- Transient flash (drops/breakdowns) — smooth decaying pulse, scaled
+    // by the theme flash amount (isTransient is a 0→1 decaying envelope) ---
+    color.rgb = mix(color.rgb, float3(1.2, 1.1, 1.3), audio.isTransient * 0.6 * pFlash);
 
     // --- Saturation push with energy (ramp scaled by profile) ---
     float3 gray = float3(dot(color.rgb, float3(0.299, 0.587, 0.114)));

@@ -23,7 +23,7 @@ final class DebugOverlay {
         overlayView.isHidden = !isVisible
     }
 
-    func update(audioState: AudioState, time: Double, theme: Theme = .cathedral) {
+    func update(audioState: AudioState, time: Double, theme: Theme = .cathedral, arc: String = "") {
         guard isVisible else { return }
 
         frameCount += 1
@@ -52,7 +52,8 @@ final class DebugOverlay {
         HIGHS    [\(bar(audioState.highs))] \(String(format: "%.2f", audioState.highs))
         ─────────────────────────
         BPM: \(String(format: "%.0f", audioState.bpm))  BEAT: \(audioState.isBeat ? "●" : "○")
-        ENERGY: [\(bar(audioState.corruptionIndex))] \(String(format: "%.3f", audioState.corruptionIndex))
+        ARC: [\(bar(audioState.corruptionIndex))] \(String(format: "%.3f", audioState.corruptionIndex))
+        \(arc)
         PHASE: \(phaseName)
         """
 

@@ -9,6 +9,9 @@ struct SanctumConfig: Codable {
     var debugOverlay: Bool = true
     var audioSource: String = "line-in" // "line-in" or path to WAV/AIFF file
     var theme: String = "cathedral" // visual theme id: "cathedral" or "beach"
+    var arcMode: String = "energy" // how the arc advances: "energy" or "schedule"
+    var scheduleStart: String = "21:00" // arc start time (HH:mm) when arcMode = schedule
+    var scheduleEnd: String = "02:00"   // arc end time (HH:mm), may cross midnight
 
     init() {}
 
@@ -27,6 +30,9 @@ struct SanctumConfig: Codable {
         debugOverlay = try c.decodeIfPresent(Bool.self, forKey: .debugOverlay) ?? d.debugOverlay
         audioSource = try c.decodeIfPresent(String.self, forKey: .audioSource) ?? d.audioSource
         theme = try c.decodeIfPresent(String.self, forKey: .theme) ?? d.theme
+        arcMode = try c.decodeIfPresent(String.self, forKey: .arcMode) ?? d.arcMode
+        scheduleStart = try c.decodeIfPresent(String.self, forKey: .scheduleStart) ?? d.scheduleStart
+        scheduleEnd = try c.decodeIfPresent(String.self, forKey: .scheduleEnd) ?? d.scheduleEnd
     }
 
     static func load() -> SanctumConfig {

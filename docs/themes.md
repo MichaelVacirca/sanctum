@@ -33,17 +33,39 @@ the audio-reactive effects distort vs. glow), and a composite **energy tint**
 {
   "theme": "beach",
   "audioSource": "line-in",
-  "corruptionWindowHours": 5.0
+  "arcMode": "schedule",
+  "scheduleStart": "21:00",
+  "scheduleEnd": "02:00"
 }
 ```
+
+`audioSource` is `"line-in"` for live capture from the mixer/mic (macOS prompts
+for mic permission the first time) or a path to a WAV/AIFF for deterministic
+testing.
 
 Unknown / missing values fall back to sensible defaults (`theme` → `cathedral`),
 and a config file missing some keys still loads fine — only the keys you set are
 applied.
 
-**Live (during an event):** press **`T`** to cycle themes on the fly. Other keys:
-`D` toggles the debug overlay (now shows the active theme + phase), `R` resets
-the energy arc, `Esc` quits.
+**Live (during an event):** keyboard controls —
+`T` cycle theme · `D` debug overlay (shows theme, arc, phase) · `Esc` quit ·
+`←`/`→` roll the arc back / advance (fine) · `↓`/`↑` (coarse) ·
+`A` resume automatic · `R` roll all the way back to the start.
+
+## Advancing the night
+
+How the 0→1 arc moves is set by `arcMode`:
+
+- **`schedule`** — the arc follows the wall clock between `scheduleStart` and
+  `scheduleEnd` (e.g. 9 PM → 2 AM), advancing the night automatically from
+  sunset to peak. Windows may cross midnight. Before the window it sits at the
+  start; after, at the end.
+- **`energy`** — the original behavior: the arc is driven by cumulative audio
+  energy over `corruptionWindowHours`.
+
+Either way the operator can take manual control with the arrow keys (advance /
+roll back); press `A` to hand control back to the automatic driver, or `R` to
+roll right back to the start.
 
 ## Generating the art
 
